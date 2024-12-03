@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Haunted Mansion Adventure</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #33ff33;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #game-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        #output {
+            flex-grow: 1;
+            background-color: #0a0a0a;
+            border: 1px solid #33ff33;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            min-height: 400px;
+        }
+
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        #command-input {
+            flex-grow: 1;
+            background-color: #0a0a0a;
+            border: 1px solid #33ff33;
+            color: #33ff33;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        button {
+            background-color: #0a0a0a;
+            border: 1px solid #33ff33;
+            color: #33ff33;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+        }
+
+        button:hover {
+            background-color: #33ff33;
+            color: #0a0a0a;
+        }
+
+        .typed {
+            animation: typing 0.05s steps(1);
+        }
+
+        @keyframes typing {
+            50% { opacity: 0; }
+        }
+
+        .help-text {
+            color: #888;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="output"></div>
+        <div id="input-container">
+            <input type="text" id="command-input" placeholder="Enter command..." autofocus>
+            <button onclick="processCommand()">Enter</button>
+        </div>
+    </div>
+
+    <script>
+        const gameState = {
+            currentRoom: 'start',
+            inventory: [],
+            visited: new Set(),
+        };
+
+        const rooms = {
+            start: {
+                description: "You stand before an old mansion, its weathered doors looming before you. The paint is peeling and shutters hang askew. A rusty key glints in the soil.",
+                exits: { north: 'foyer', east: 'garden' },
+                items: ['rusty key']
+            },
+            foyer: {
+                description: "You're in a dusty foyer. A grand staircase leads upstairs. A dark hallway extends to the west, and a door leads to the kitchen.",
+                exits: { up: 'upstairs', west: 'hallway', east: 'kitchen', south: 'start' },
+                items: []
+            },
+            kitchen: {
+                description: "The kitchen is a mess of cobwebs and rusty utensils. A silver candlestick sits on the counter.",
+                exits: { west: 'foyer' },
+                items: ['silver candlestick']
+            },
+            hallway: {
+                description: "A long dark hallway stretches before you. You hear strange whispers from the library door.",
+                exits: { east: 'foyer', west: 'library' },
+                items: []
+            },
+            library: {
+                description: "Rows of ancient books line the walls. A strange book with a glowing symbol catches your eye.",
+                exits: { east: 'hallway' },
+                items: ['glowing book']
+            },
+            upstairs: {
+                description: "The upstairs landing is dim and cold. A bedroom door creaks slightly open.",
+                exits: { down: 'foyer', north: 'bedroom' },
+                items: []
+            },
+            bedroom: {
+                description: "Moonlight filters through tattered curtains. A jewelry box rests on an old vanity.",
+                exits: { south: 'upstairs' },
+                items: ['jewelry box']
+            }
+        };
+
+        function typeText(text, element) {
+            let index = 0;
+            element.textContent = '';
+            
+            function addChar() {
+                if (index < text.length) {
+                    element.textContent += text[index];
+                    index++;
+                    setTimeout(addChar, 25);
+                } else {
+                    element.classList.remove('typed');
+                }
+            }
+            
+            element.classList.add('typed');
+            addChar();
+        }
+
+        function displayText(text) {
+            const output = document.getElementById('output');
+            const p = document.createElement('p');
+            output.appendChild(p);
+            typeText(text, p);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function showCurrentRoom() {
+            const room = rooms[gameState.currentRoom];
+            displayText(room.description);
+            
+            if (room.items.length > 0) {
+                displayText("You see: " + room.items.join(", "));
+            }
+            
+            const exitsList = Object.keys(room.exits).join(", ");
+            displayText("Exits: " + exitsList);
+        }
+
+        function processCommand() {
+            const input = document.getElementById('command-input');
+            const command = input.value.toLowerCase().trim();
+            input.value = '';
+
+            if (!command) return;
+
+            displayText("> " + command);
+
+            const words = command.split(" ");
+            const action = words[0];
+            const target = words.slice(1).join(" ");
+
+            switch (action) {
+                case 'go':
+                case 'move':
+                    const room = rooms[gameState.currentRoom];
+                    if (room.exits[target]) {
+                        gameState.currentRoom = room.exits[target];
+                        if (!gameState.visited.has(gameState.currentRoom)) {
+                            gameState.visited.add(gameState.currentRoom);
+                        }
+                        showCurrentRoom();
+                    } else {
+                        displayText("You can't go that way.");
+                    }
+                    break;
+
+                case 'take':
+                    const currentRoom = rooms[gameState.currentRoom];
+                    const itemIndex = currentRoom.items.indexOf(target);
+                    if (itemIndex > -1) {
+                        gameState.inventory.push(target);
+                        currentRoom.items.splice(itemIndex, 1);
+                        displayText("Taken: " + target);
+                    } else {
+                        displayText("You don't see that here.");
+                    }
+                    break;
+
+                case 'inventory':
+                case 'i':
+                    if (gameState.inventory.length > 0) {
+                        displayText("You are carrying: " + gameState.inventory.join(", "));
+                    } else {
+                        displayText("Your inventory is empty.");
+                    }
+                    break;
+
+                case 'look':
+                    showCurrentRoom();
+                    break;
+
+                case 'help':
+                    displayText("Available commands:");
+                    displayText("- go/move [direction]: Move in a direction");
+                    displayText("- take [item]: Pick up an item");
+                    displayText("- inventory/i: Check your inventory");
+                    displayText("- look: Look around");
+                    displayText("- help: Show this help message");
+                    break;
+
+                default:
+                    displayText("I don't understand that command. Type 'help' for options.");
+            }
+        }
+
+        // Handle Enter key
+        document.getElementById('command-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                processCommand();
+            }
+        });
+
+        // Start game
+        displayText("Welcome to the Haunted Mansion Adventure!");
+        displayText("Type 'help' for a list of commands.");
+        displayText("");
+        showCurrentRoom();
+    </script>
+</body>
+</html>

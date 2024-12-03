@@ -1,0 +1,73 @@
+body {
+    background-color: black;
+    color: #33ff33;
+    font-family: 'Courier New', monospace;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Full height of the viewport */
+    width: 100%; /* Full width */
+    max-width: 800px; /* Optional: limit maximum width */
+    margin: 0 auto; /* Center horizontally */
+}
+
+#output {
+    flex-grow: 1; /* Fills all available vertical space */
+    background-color: #0a0a0a;
+    border: 1px solid #33ff33;
+    padding: 10px;
+    overflow-y: auto; /* Allows scrolling within the output box */
+    font-size: 16px;
+    line-height: 1.5;
+    display: block; /* Changed from flex to block to avoid centering children */
+    text-align: left; /* Ensures all text is left-aligned */
+    box-sizing: border-box; /* Ensures padding is included in the height */
+}
+
+#game-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#input-container {
+    display: flex;
+    align-items: center;
+    background-color: #0a0a0a;
+    border: 1px solid #33ff33;
+    padding: 10px;
+    box-sizing: border-box; /* Ensures padding is included in the height */
+    height: 50px; /* Fixed height for the input area */
+}
+
+#command-line {
+    flex-shrink: 0;
+}
+
+#command-input {
+    flex-grow: 1;
+    background-color: transparent;
+    border: none;
+    color: #33ff33;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    outline: none;
+    caret-color: #33ff33;
+    text-align: left; /* Ensures input text is left-aligned */
+}
+
+.typed {
+    animation: typing 0.05s steps(1);
+}
+
+@keyframes typing {
+    50% { opacity: 0; }
+}
